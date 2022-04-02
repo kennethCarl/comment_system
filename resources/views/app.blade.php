@@ -13,14 +13,14 @@
     <script src="{{ asset('js/app.js') . '?v=' . 'build_' . rand(1, 100) }}" defer></script>
 
     <!-- Fonts -->
-    {{--<link rel="stylesheet" href="{{asset('font-awesome-4.7.0/css/font-awesome.css')}}">--}}
+    <link rel="stylesheet" href="{{asset('font-awesome-4.7.0/css/font-awesome.css')}}">
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') . '?v=' . 'build_' . rand(1, 100) }}" rel="stylesheet">
 </head>
 <body>
     <div id="app" v-cloak>
-        <example-component></example-component>
+        <router-view></router-view>
     </div>
 </body>
 </html>

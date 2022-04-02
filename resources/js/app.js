@@ -9,24 +9,109 @@ require('./bootstrap');
 window.Vue = require('vue');
 
 /**
- * The following block of code may be used to automatically register your
- * Vue components. It will recursively scan this directory for the Vue
- * components and automatically register them with their "basename".
- *
- * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
- */
-
-// const files = require.context('./', true, /\.vue$/i)
-// files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
-
-Vue.component('example-component', require('./components/ExampleComponent.vue').default);
-
-/**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
+import Vue from 'vue';
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+import VueRouter from 'vue-router';
+import Vuex, {mapState} from 'vuex';
+import 'es6-promise/auto';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue/dist/bootstrap-vue.css';
+import VuexPersistence from 'vuex-persist';
+import UserComponent from './components/user';
+import PostComponent from "../js/components/post";
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
+Vue.use(Vuex);
+Vue.use(VueRouter);
+
+Vue.component('user', UserComponent);
+Vue.component('post', PostComponent);
+
+const vuexLocal = new VuexPersistence({
+    storage: window.sessionStorage,
+    key: 'comment-system',
+    supportCircular: true
+})
+
+const defaultState = {
+    selectedRoute: '/user',
+    user: {alias: '', avatar: 'male1.png'}
+};
+
+
+const store = new Vuex.Store({
+    plugins: [vuexLocal.plugin],
+    state: {
+        ...defaultState
+    },
+    getters: {
+        selectedRoute: state => {
+            return state.selectedRoute;
+        },
+        user: state => {
+            return state.user;
+        },
+    },
+    mutations: {
+        resetState: (state) => {
+            Object.assign(state, defaultState);
+        },
+        setSelectedRoute: (state, payload) => {
+            state.selectedRoute = payload;
+        },
+        setUser: (state, payload) => {
+            state.user = payload;
+        },
+    },
+    actions: {
+        resetState: (context) => {
+            context.commit("resetState");
+        },
+        setSelectedRoute: (context, payload) => {
+            context.commit("setSelectedRoute", payload);
+        },
+        setUser: (context, payload) => {
+            context.commit("setUser", payload);
+        }
+    }
+})
+
+const routes = [
+    {
+        path: '/user',
+        name: 'user',
+        component: UserComponent
+    },
+    {
+        path: '/post',
+        name: 'management',
+        component: PostComponent
+    },
+    {
+        path: '*',
+        name: 'notfound',
+        component: UserComponent
+    },
+];
+
+const router = new VueRouter({
+    mode: 'history',
+    routes // short for `routes: routes`
+});
+
+
 const app = new Vue({
     el: '#app',
+    router,
+    store,
+    mounted() {
+        this.$router.push(this.$store.state.selectedRoute);
+    }
 });

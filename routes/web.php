@@ -14,5 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('app');
 });
+
+Route::post('/create_user', 'UserController@createUser')->name('create_user');
+Route::get('/retrieve_total_comments', 'CommentController@retrieveTotalComments')->name('retrieve_total_comments');
+Route::post('/retrieve_comments', 'CommentController@retrieveComments')->name('retrieve_comments');
+Route::post('/retrieve_child_comments', 'CommentController@retrieveChildComments')->name('retrieve_child_comments');
