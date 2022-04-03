@@ -48,6 +48,7 @@ body {
                         <div class="d-flex flex-row post-title">
                             <h5>Why Aloware is a good company to work? </h5>
                         </div>
+                        <small>
                         <div class="d-flex flex-row align-items-center align-content-center post-title">
                             <span class="mr-2 comments">
                                 <div class="spinner-border spinner-border-sm text-primary" role="status" v-if="isRetrievingCommentCount">
@@ -56,10 +57,11 @@ body {
                                 <span v-else>{{commentsCount}}</span>&nbsp;comments&nbsp;
                             </span>
 
-                            <span class="ml-1 mr-2">Admin</span>
+                            <span class="ml-1 mr-2"><strong>Admin</strong></span>
                             <span class="mr-2 mb-1 dot bg-success"></span>
                             <span>6 hours ago</span>
                         </div>
+                        </small>
                         <div class="d-flex flex-row">
                             <span class="btn btn-sm btn-link ml-0 pl-0">
                                 <small @click="changeUser">Change user</small>
@@ -68,18 +70,15 @@ body {
                     </div>
                 </div>
                 <div class="comment-bottom bg-white p-2 px-4">
-                    <div class="d-flex flex-row add-comment-section mt-4 mb-4">
-                        <img class="img-fluid img-responsive rounded-circle mr-2" :src="'/storage/images/' + user['avatar']" width="38">
-                        <input v-model="comment" v-on:keyup.enter="sendMessage" type="text" class="form-control form-control-sm mr-3 mt-1"
-                               :placeholder="'Commenting as ' + user['alias']"/>
-                        <button class="btn btn-sm btn-primary" type="button" @click="sendMessage" :disabled="isSavingComment">
-                            <span v-if="isSavingComment" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span v-else>Send</span>
-                        </button>
-                    </div>
-
-                    <template v-for="comment_details in parentComments">
-                        <comment :level="1" :details="comment_details" :margin="0"></comment>
+                    <reply ref="mainCommentBox" :saveComment="saveComment"></reply>
+                    <template v-for="(comment_details, index) in parentComments">
+                        <comment :key="'comment_' + comment_details.id"
+                                 :level="1"
+                                 :details="comment_details"
+                                 :margin="0"
+                                 :deleted="deleted"
+                                 :index="index"
+                        ></comment>
                     </template>
                     <span class="btn btn-sm btn-link" @click="retrieveComments">
                         <small class="mr-2">See more comments...</small>
@@ -96,10 +95,10 @@ body {
 <script>
 import {mapState} from "vuex";
 import comment from './comment';
+import reply from './reply';
 export default {
     data(){
      return {
-         commentsCount: 0,
          parentComments: [],
          comment: '',
          isRetrievingCommentCount: true,
@@ -107,10 +106,10 @@ export default {
          isSavingComment: false
      }
     },
-    components:{ comment },
+    components:{ comment, reply },
     computed:{
         // We map the products state from our vuex store for neater code when accessing.
-        ...mapState(['user'])
+        ...mapState(['user', 'commentsCount'])
     },
     methods:{
         retrieveComments: function(){
@@ -136,21 +135,49 @@ export default {
                 if(responseData.status === 0){
                     alert(responseData.message);
                 }else{
-                    this.commentsCount = responseData['count']
+                    this.$store.dispatch('setCommentsCount', responseData['count']);
                 }
                 this.isRetrievingCommentCount = false
             }).catch((error) =>{
                 alert("A js error has occurred. Please contact system admin through email: familyinspiredprojects@gmail.com");
             });
         },
-        sendMessage: function(){
-            this.isSavingComment = true;
+        saveComment: function(){
+            this.$refs.mainCommentBox.$data.isSavingComment = true;
+            axios.post('/create_comment', {
+                user_id: this.user.id,
+                comment: this.$refs.mainCommentBox.$data.comment,
+                parentID: 0
+            }).then((response) => {
+                let responseData = response.data;
+
+                if (responseData.status === 0) {
+                    if(responseData.message !== ""){
+                        alert(responseData.message);
+                    }else{
+                        this.errors = responseData['errors'];
+                    }
+                } else {
+                    this.$store.dispatch('setCommentsCount', this.commentsCount + 1);
+                    responseData['record'].user = this.user;
+                    this.parentComments.unshift(responseData['record']);
+                    this.$refs.mainCommentBox.$data.comment = "";
+                }
+                this.$refs.mainCommentBox.$data.isSavingComment = false;
+            }).catch((error) => {
+                this.$refs.mainCommentBox.$data.isSavingComment = false;
+                alert("A js error has occurred. Please contact system admin through email: familyinspiredprojects@gmail.com")
+            });
         },
         changeUser: function(){
             let self = this;
             this.$store.dispatch('setSelectedRoute', '/user').then(function(val){
                 self.$router.push('/user');
             });
+        },
+        deleted: function(index, commentCount){
+            this.parentComments.splice(index, 1);
+            this.$store.dispatch('setCommentsCount', commentCount);
         }
     },
     mounted(){

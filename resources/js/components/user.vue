@@ -89,9 +89,10 @@ export default {
     methods:{
         onProceed: function(){
             this.onProcess = true;
+            let self = this;
 
             if(this.user.alias.toString().trim() === ""){
-                this.error['alias'] = 'is required!';
+                this.errors.alias = 'is required!';
                 this.onProcess = false;
             }else {
                 axios.post('/create_user', this.user).then((response) => {
@@ -106,7 +107,7 @@ export default {
                         }
                     } else {
                         this.record = responseData['record'];
-                        let self = this;
+                        this.$store.dispatch('setUser', this.record);
                         this.$store.dispatch('setSelectedRoute', '/post').then(function(val){
                             self.$router.push({ path: '/post'});
                         })

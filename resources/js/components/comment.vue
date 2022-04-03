@@ -13,14 +13,18 @@
         </div>
         <div class="reply-section">
             <div class="d-flex flex-row align-items-center voting-icons">
-                <span v-if="details['user']['alias'] === user['alias']" class="btn btn-sm btn-link mt-1"><small>Delete</small></span>
-                <template v-if="level !== 3">
+                <span v-if="details['user']['alias'] === user['alias']" class="btn btn-sm btn-link" @click="onDelete">
+                    <small>
+                        <span>Delete</span>
+                    </small>
+                </span>
+                <template v-if="level !== 3 && !isDeletingComment">
                     <span :class="{'d-none' : hideReplies, 'd-block': !hideReplies}" class="btn btn-sm btn-link" @click="hideReplies = !hideReplies">
                         <small>
                             <span>Hide Replies</span>
                         </small>
                     </span>
-                    <span :class="{'d-none' : hideReplies, 'd-block': !hideReplies}" class="btn btn-sm btn-link" @click="isShowReply = !isShowReply">
+                    <span :class="{'d-none' : hideReplies, 'd-block': !hideReplies}" class="btn btn-sm btn-link" @click="isShowReply = !isShowReply;">
                         <small>
                             <span v-if="!isShowReply">Reply</span>
                             <span v-else>Cancel</span>
@@ -40,6 +44,13 @@
                             <span>Show Replies</span></small>
                     </span>
                 </template>
+                <small v-if="isDeletingComment">
+                    <!--display comment replies-->
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </small>
+
             </div>
         </div>
         <!--reply interface-->
@@ -55,8 +66,16 @@
             </div>
         </div>
         <hr>
-        <template v-for="reply in replies">
-            <comment :key="reply.id" :level="level + 1" :details="reply" :margin="(level + 2)" :class="{'d-none' : hideReplies, 'd-block': !hideReplies}"></comment>
+        <template v-for="(reply, index) in replies">
+            <comment
+                :key="reply.id"
+                :level="level + 1"
+                :details="reply"
+                :margin="(level + 2)"
+                :class="{'d-none' : hideReplies, 'd-block': !hideReplies}"
+                :deleted="childCommentDeleted"
+                :index="index"
+            ></comment>
         </template>
     </div>
 </template>
@@ -65,10 +84,10 @@
 import {mapState} from "vuex";
 export default {
     name: 'comment',
-    props: ['level', 'details', 'margin'],
+    props: ['level', 'details', 'margin', 'deleted', 'index'],
     computed:{
         // We map the products state from our vuex store for neater code when accessing.
-        ...mapState(['user'])
+        ...mapState(['user', 'commentsCount'])
     },
     data(){
       return{
@@ -77,12 +96,38 @@ export default {
           isShowReply: false,
           replies: [],
           hideReplies: false,
-          isRetrievingReplies: false
+          isRetrievingReplies: false,
+          isDeletingComment: false
       }
     },
     methods: {
         sendMessage: function(){
+            this.isSavingComment = true;
+            axios.post('/create_comment', {
+                user_id: this.user.id,
+                comment: this.comment,
+                parentID: this.details.id
+            }).then((response) => {
+                let responseData = response.data;
 
+                if (responseData.status === 0) {
+                    if(responseData.message !== ""){
+                        alert(responseData.message);
+                    }else{
+                        this.errors = responseData['errors'];
+                    }
+                } else {
+                    this.$store.dispatch('setCommentsCount', this.commentsCount + 1);
+                    responseData['record'].user = this.user;
+                    this.replies.unshift(responseData['record']);
+                    this.comment = "";
+                    this.isShowReply = false;
+                }
+                this.isSavingComment = false;
+            }).catch((error) => {
+                this.isSavingComment = false;
+                alert("A js error has occurred. Please contact system admin through email: familyinspiredprojects@gmail.com")
+            });
         },
         retrieveReplies: function(){
             this.isRetrievingReplies = true;
@@ -101,6 +146,27 @@ export default {
                 this.isRetrievingReplies = false;
                 alert("A js error has occurred. Please contact system admin through email: familyinspiredprojects@gmail.com");
             });
+        },
+        onDelete: function(){
+            this.isDeletingComment = true;
+            axios.post('/delete_comment', {
+                commentID: this.$props.details.id,
+            }).then((response) =>{
+                let responseData = response.data;
+                if(responseData.status === 0){
+                    alert(responseData.message);
+                }else{
+                    this.isDeletingComment = false;
+                    this.$props.deleted(this.$props.index, responseData['count']);
+                }
+            }).catch((error) =>{
+                this.isDeletingComment = false;
+                alert("A js error has occurred. Please contact system admin through email: familyinspiredprojects@gmail.com");
+            });
+        },
+        childCommentDeleted: function(index, commentCount){
+            this.replies.splice(index, 1);
+            this.$store.dispatch('setCommentsCount', commentCount);
         }
     },
     mounted() {

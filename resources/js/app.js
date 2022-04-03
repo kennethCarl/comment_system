@@ -42,7 +42,8 @@ const vuexLocal = new VuexPersistence({
 
 const defaultState = {
     selectedRoute: '/user',
-    user: {alias: '', avatar: 'male1.png'}
+    user: {alias: '', avatar: 'male1.png'},
+    commentsCount: 0,
 };
 
 
@@ -58,6 +59,9 @@ const store = new Vuex.Store({
         user: state => {
             return state.user;
         },
+        commentsCount: state => {
+            return state.commentsCount;
+        }
     },
     mutations: {
         resetState: (state) => {
@@ -69,6 +73,9 @@ const store = new Vuex.Store({
         setUser: (state, payload) => {
             state.user = payload;
         },
+        setCommentsCount: (state, payload) => {
+            state.commentsCount = payload;
+        }
     },
     actions: {
         resetState: (context) => {
@@ -79,6 +86,9 @@ const store = new Vuex.Store({
         },
         setUser: (context, payload) => {
             context.commit("setUser", payload);
+        },
+        setCommentsCount: (context, payload) => {
+            context.commit("setCommentsCount", payload);
         }
     }
 })
