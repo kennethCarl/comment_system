@@ -125,7 +125,10 @@ export default {
                       responseData['records'][i]['comment_timestamp'] = new Date(responseData['records'][i]['created_at']);
                   }
                   this.parentComments = [...this.parentComments, ...responseData['records']];
-                  this.updateTime();
+                  let self = this;
+                  setTimeout(function(){
+                      self.updateTime();
+                  }, 1000);
               }
               this.isRetrievingComments = false;
           }).catch((error) =>{

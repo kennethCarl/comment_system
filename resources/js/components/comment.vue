@@ -144,7 +144,10 @@ export default {
                         responseData['records'][i]['comment_timestamp'] = new Date(responseData['records'][i]['created_at']);
                     }
                     this.replies = [...this.replies, ...responseData['records']];
-                    this.updateTime();
+                    let self = this;
+                    setTimeout(function(){
+                        self.updateTime();
+                    }, 1000);
                 }
                 this.isRetrievingReplies = false;
             }).catch((error) =>{
