@@ -21,6 +21,7 @@ class CreateCommentsTable extends Migration
             $table->integer('status')->default(1);
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users');
+            $table->index(['user_id'], 'idx1_user_table');
         });
     }
 

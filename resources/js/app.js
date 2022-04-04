@@ -24,12 +24,15 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import VuexPersistence from 'vuex-persist';
 import UserComponent from './components/user';
 import PostComponent from "../js/components/post";
+import VueMoment from 'vue-moment';
+
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.use(Vuex);
 Vue.use(VueRouter);
+Vue.use(VueMoment);
 
 Vue.component('user', UserComponent);
 Vue.component('post', PostComponent);

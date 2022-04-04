@@ -40,7 +40,8 @@
                                 </div>
                                 <div class="form-outline mb-4">
                                     <label class="form-label" for="userName">Alias<span class="text-danger ml-1">{{errors['alias']}}</span></label>
-                                    <input maxlength="10" type="text" v-model="user.alias" id="userName" class="form-control form-control-lg" />
+                                    <input autocomplete="off" maxlength="10" type="text" v-model="user.alias" id="userName" class="form-control form-control-lg"
+                                           v-on:keyup.enter="onProceed"/>
                                 </div>
                                 <div class="d-flex justify-content-center">
                                     <button type="button" class="btn btn-success btn-block btn-lg gradient-custom-4 text-body" @click="onProceed" :disabled="onProcess">Proceed</button>

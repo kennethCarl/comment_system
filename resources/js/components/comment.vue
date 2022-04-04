@@ -4,7 +4,7 @@
             <img class="img-fluid img-responsive rounded-circle mr-2" :src="'/storage/images/' + details['user']['avatar']" width="38">
             <span class="mr-2"><small><strong>{{details['user']['alias']}}</strong></small></span>
             <span class="dot bg-success"></span>
-            <span class="ml-2"><small>{{details['comment_date_time']}}</small></span>
+            <span class="ml-2"><small>{{details['comment_timestamp'] | moment("from", "now") }}</small></span>
         </div>
         <div class="ml-2">
             <span>
@@ -57,7 +57,7 @@
         <div class="comment-bottom bg-white" v-if="isShowReply">
             <div class="d-flex flex-row add-comment-section  mt-3 mb-3">
                 <img class="img-fluid img-responsive rounded-circle mr-2" :src="'/storage/images/' + user['avatar']" width="38">
-                <input v-model="comment" v-on:keyup.enter="sendMessage" type="text" class="form-control form-control-sm mr-3 mt-1"
+                <input :ref="'commentBox_' + details.id" v-model="comment" v-on:keyup.enter="sendMessage" type="text" class="form-control form-control-sm mr-3 mt-1"
                        :placeholder="'Commenting as ' + user['alias']"/>
                 <button class="btn btn-sm btn-primary" type="button" @click="sendMessage" :disabled="isSavingComment">
                     <span v-if="isSavingComment" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -119,6 +119,7 @@ export default {
                 } else {
                     this.$store.dispatch('setCommentsCount', this.commentsCount + 1);
                     responseData['record'].user = this.user;
+                    responseData['record']['comment_timestamp'] = new Date(responseData['record']['created_at']);
                     this.replies.unshift(responseData['record']);
                     this.comment = "";
                     this.isShowReply = false;
@@ -139,7 +140,11 @@ export default {
                 if(responseData.status === 0){
                     alert(responseData.message);
                 }else{
+                    for(let i = 0; i < responseData['records'].length; i++){
+                        responseData['records'][i]['comment_timestamp'] = new Date(responseData['records'][i]['created_at']);
+                    }
                     this.replies = [...this.replies, ...responseData['records']];
+                    this.updateTime();
                 }
                 this.isRetrievingReplies = false;
             }).catch((error) =>{
@@ -167,11 +172,41 @@ export default {
         childCommentDeleted: function(index, commentCount){
             this.replies.splice(index, 1);
             this.$store.dispatch('setCommentsCount', commentCount);
+        },
+        updateTime: function(){
+            let self = this;
+            let commentTimeReplies = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve();
+                }, 1000);
+            });
+            commentTimeReplies.then(function(){
+                for(let j = 0; j < self.replies.length; j++){
+                    let currentTimestampChildComment = new Date(self.replies[j]['comment_timestamp']);
+                    currentTimestampChildComment.setSeconds(currentTimestampChildComment.getSeconds() - 1);
+                    self.replies[j]['comment_timestamp'] = currentTimestampChildComment;
+                }
+                self.updateTime();
+            });
         }
     },
     mounted() {
         if(this.details['replies_count'] > 0){
             this.retrieveReplies();
+        }
+    },
+    watch: {
+        isShowReply(newVal){
+            if(newVal){
+                let self = this;
+                let watchCommentBox = setInterval(function(){
+                    if(self.$refs['commentBox_' + self.details.id] !== undefined){
+                        self.$refs['commentBox_' + self.details.id].focus();
+                        clearInterval(watchCommentBox);
+                        watchCommentBox = undefined;
+                    }
+                }, 100);
+            }
         }
     }
 }

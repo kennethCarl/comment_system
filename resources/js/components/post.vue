@@ -121,7 +121,11 @@ export default {
               if(responseData.status === 0){
                   alert(responseData.message);
               }else{
+                  for(let i = 0; i < responseData['records'].length; i++){
+                      responseData['records'][i]['comment_timestamp'] = new Date(responseData['records'][i]['created_at']);
+                  }
                   this.parentComments = [...this.parentComments, ...responseData['records']];
+                  this.updateTime();
               }
               this.isRetrievingComments = false;
           }).catch((error) =>{
@@ -160,6 +164,7 @@ export default {
                 } else {
                     this.$store.dispatch('setCommentsCount', this.commentsCount + 1);
                     responseData['record'].user = this.user;
+                    responseData['record']['comment_timestamp'] = new Date(responseData['record']['created_at']);
                     this.parentComments.unshift(responseData['record']);
                     this.$refs.mainCommentBox.$data.comment = "";
                 }
@@ -178,6 +183,22 @@ export default {
         deleted: function(index, commentCount){
             this.parentComments.splice(index, 1);
             this.$store.dispatch('setCommentsCount', commentCount);
+        },
+        updateTime: function(){
+            let self = this;
+            let commentTime = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve();
+                }, 1000);
+            });
+            commentTime.then(function(){
+                for(let i = 0; i < self.parentComments.length; i++){
+                    let currentTimestamp = new Date(self.parentComments[i]['comment_timestamp']);
+                    currentTimestamp.setSeconds(currentTimestamp.getSeconds() - 1);
+                    self.parentComments[i]['comment_timestamp'] = currentTimestamp;
+                }
+                self.updateTime();
+            });
         }
     },
     mounted(){
