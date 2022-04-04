@@ -19,7 +19,7 @@
                     </small>
                 </span>
                 <template v-if="level !== 3 && !isDeletingComment">
-                    <span :class="{'d-none' : hideReplies, 'd-block': !hideReplies}" class="btn btn-sm btn-link" @click="hideReplies = !hideReplies">
+                    <span v-if="replies.length > 0" :class="{'d-none' : hideReplies, 'd-block': !hideReplies}" class="btn btn-sm btn-link" @click="hideReplies = !hideReplies">
                         <small>
                             <span>Hide Replies</span>
                         </small>
@@ -39,7 +39,7 @@
                             </div>
                         </small>
                     </span>
-                    <span :class="{'d-none' : !hideReplies, 'd-block': hideReplies}" class="btn btn-sm btn-link" @click="hideReplies = !hideReplies">
+                    <span v-if="replies.length > 0" :class="{'d-none' : !hideReplies, 'd-block': hideReplies}" class="btn btn-sm btn-link" @click="hideReplies = !hideReplies">
                         <small>
                             <span>Show Replies</span></small>
                     </span>
