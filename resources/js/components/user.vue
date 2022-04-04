@@ -21,7 +21,7 @@
 }
 </style>
 <template>
-    <section class="vh-100 bg-image" style="background-image: url('https://mdbcdn.b-cdn.net/img/Photos/new-templates/search-box/img4.webp');">
+    <section class="vh-100 bg-image" style="background-image: url('/storage/images/bg.png');">
         <div class="mask d-flex align-items-center h-100 gradient-custom-3">
             <div class="container">
                 <div class="row d-flex justify-content-center align-items-center h-100">
@@ -80,7 +80,6 @@ export default {
     watch:{
         user: {
             handler(val){
-                console.log(val);
                 this.$store.dispatch('setUser', val);
             },
             deep: true

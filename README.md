@@ -12,3 +12,4 @@ An app written in laravel. Follow these steps:
 - run 'php artisan storage:link'
 - run 'npm run dev'
 - run 'php artisan optimize'
+- run 'php artisan serve' to start using the app
