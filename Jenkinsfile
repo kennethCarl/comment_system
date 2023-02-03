@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('install/update php libraries ') {
             steps {
-                sh '$DIR_PATHp/dockerize_laravel/shell-scripts/git_actions.sh'
+                sh '$DIR_PATH/dockerize_laravel/shell-scripts/git_actions.sh'
             }
         }
         stage('build and start docker') {
